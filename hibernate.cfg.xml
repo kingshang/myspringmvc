@@ -80,6 +80,6 @@
         <!-- 引入ORM 映射文件
             填写src之后的路径
          -->
-        <mapping resource="com/java/User.hbm.xml"/>
+        <mapping resource="src/domain/User.bmp.xml"/>
     </session-factory>
 </hibernate-configuration>
