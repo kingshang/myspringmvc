@@ -1,6 +1,7 @@
 package com.springdemo.controller;
 
 import com.springdemo.model.UserEntity;
+import com.springdemo.model.assistorEntity;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistry;
@@ -9,18 +10,68 @@ import org.hibernate.cfg.Configuration;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.io.*;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.UUID;
 
 @Controller
 @RequestMapping("/demo")
-class DemoController {
+class DemoController  {
 
-    @RequestMapping("/index")
-    public ModelAndView index() {
+    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    public ModelAndView login() {
+        ModelAndView mv = new ModelAndView("login");
+        return mv;
+    }
+
+    @RequestMapping(value = "/login.do", method = RequestMethod.POST)
+    public ModelAndView login(UserEntity user) {
+        ModelAndView mv = new ModelAndView("login");
+        //mv.addObject("userid", userid);
+        //mv.addObject("password", password);
+        return mv;
+    }
+
+    @RequestMapping(value = "/assistor", method = RequestMethod.GET)
+    public ModelAndView assistor() {
+        ModelAndView mv = new ModelAndView("assistor");
+        return mv;
+    }
+
+    @RequestMapping(value = "/assistor.do", method = RequestMethod.POST)
+    public ModelAndView login(assistorEntity assistor) {
+        ModelAndView mv = new ModelAndView("assistor");
+        File file = new File(assistor.getDir());
+        String existsFiles = "";
+        for (String subfile : file.list()) {
+            try {
+                String fullName = file.getPath() + "\\" + subfile;
+                BufferedReader reader = new BufferedReader(new FileReader(fullName));
+                StringBuilder content = new StringBuilder();
+                String s;
+                while ((s = reader.readLine()) != null) {
+                    content.append(s);
+                }
+                if (content.indexOf(assistor.getContext()) >= 0) {
+                    existsFiles += "<br>" + subfile;
+                }
+                mv.addObject("existsFiles",existsFiles);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return mv;
+    }
+
+    private void sub() {
+
         //try {
         //加载Hibernate配置文件
         Configuration cfg = new Configuration().configure();
@@ -28,43 +79,35 @@ class DemoController {
         StandardServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder().applySettings(cfg.getProperties()).build();
         //实例化SessionFactory
         SessionFactory sessionFactory = cfg.buildSessionFactory(serviceRegistry);
-        Session session = null;
-            session = sessionFactory.openSession();
+        Session session = sessionFactory.openSession();
 
 
-            UserEntity u = new UserEntity();
-            u.setUserid(UUID.randomUUID().toString());
-            u.setUsername("kingshang");
-            u.setPassword("hello");
-            DateTime date = new DateTime();
-            Date d = new Date();
-            d.getTime();
-            u.setCreateTime(new Timestamp(d.getTime()));
-            date = date.plusYears(1);
-            u.setExpireTime(new Timestamp(d.getTime()));
+        UserEntity u = new UserEntity();
+        u.setUserid(UUID.randomUUID().toString());
+        u.setUsername("kingshang");
+        u.setPassword("hello");
+        DateTime date = new DateTime();
+        Date d = new Date();
+        d.getTime();
+        u.setCreateTime(new Timestamp(d.getTime()));
+        date = date.plusYears(1);
+        u.setExpireTime(new Timestamp(d.getTime()));
 
 
-            session.beginTransaction();
-            session.save(u);
-            session.getTransaction().commit();
+        session.beginTransaction();
+        session.save(u);
+        session.getTransaction().commit();
         //} catch (Exception e) {
-            //e.printStackTrace();
+        //e.printStackTrace();
         //} finally {
-            if (session != null) {
-                session.close();
-            }
+        if (session != null) {
+            session.close();
+        }
 
-            if (sessionFactory != null) {
-                sessionFactory.close();
-            }
+        if (sessionFactory != null) {
+            sessionFactory.close();
+        }
         //}
-        ModelAndView mv = new ModelAndView("demo");
-        return mv;
     }
 
-    @RequestMapping("/helloworld")
-    public ModelAndView helloworld() {
-        ModelAndView mv = new ModelAndView("helloworld");
-        return mv;
-    }
 }
