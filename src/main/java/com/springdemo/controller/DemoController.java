@@ -9,31 +9,30 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.UUID;
 
 @Controller
 @RequestMapping("/demo")
-class DemoController  {
+public class DemoController {
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
-    public ModelAndView login() {
-        ModelAndView mv = new ModelAndView("login");
-        return mv;
+    public String login() {
+        return "login";
     }
 
     @RequestMapping(value = "/login.do", method = RequestMethod.POST)
-    public ModelAndView login(UserEntity user) {
-        ModelAndView mv = new ModelAndView("login");
-        //mv.addObject("userid", userid);
-        //mv.addObject("password", password);
-        return mv;
+    public String login(UserEntity user) {
+        return "login";
     }
 
     @RequestMapping(value = "/assistor", method = RequestMethod.GET)
@@ -42,31 +41,30 @@ class DemoController  {
         return mv;
     }
 
-    @RequestMapping(value = "/assistor.do", method = RequestMethod.POST)
-    public ModelAndView login(assistorEntity assistor) {
-        ModelAndView mv = new ModelAndView("assistor");
+    @RequestMapping(value = "/assistor", method = RequestMethod.POST)
+    public ModelAndView assistor(@ModelAttribute assistorEntity assistor,Model model) throws IOException {
         File file = new File(assistor.getDir());
         String existsFiles = "";
         for (String subfile : file.list()) {
-            try {
-                String fullName = file.getPath() + "\\" + subfile;
-                BufferedReader reader = new BufferedReader(new FileReader(fullName));
-                StringBuilder content = new StringBuilder();
-                String s;
-                while ((s = reader.readLine()) != null) {
-                    content.append(s);
-                }
-                if (content.indexOf(assistor.getContext()) >= 0) {
-                    existsFiles += "<br>" + subfile;
-                }
-                mv.addObject("existsFiles",existsFiles);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+            String fullName = file.getPath() + "\\" + subfile;
+            BufferedReader reader = new BufferedReader(new FileReader(fullName));
+            StringBuilder content = new StringBuilder();
+            String s;
+            while ((s = reader.readLine()) != null) {
+                content.append(s);
             }
+            if (content.indexOf(assistor.getContext()) >= 0) {
+                existsFiles += "<br>" + subfile;
+            }
+            assistor.setResult(existsFiles);
+            assistor.setDir("");
         }
-
+        if (existsFiles == "") {
+            existsFiles = "content not found";
+        }
+        ModelAndView mv = new ModelAndView("assistor");
+        mv.addObject("result", existsFiles);
+        model.addAttribute("result", existsFiles);
         return mv;
     }
 
